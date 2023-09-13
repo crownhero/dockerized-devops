@@ -1,0 +1,38 @@
+# Stage 1: Build the application
+FROM php:7.4-apache AS builder
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    unzip nano git curl
+
+# Copy application to the container
+WORKDIR /tmp
+RUN git clone  https://waverlite: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@github.com/waverlite/Website.git .
+RUN mv * /var/www/html/
+RUN mv .htaccess /var/www/html/
+
+# Stage 2: Finalize the image
+FROM php:7.4-apache
+
+# Copy the built application from the previous stage and give necessary permissions
+COPY --from=builder /var/www/html/ /var/www/html/
+RUN chmod -R 755 /var/www/html
+
+# Set up environment variables
+ENV WT_KH_WAVERLITE_CORE_PRODUCT_KEY=')@y<=L|X9KdEi0MVlKRnU#59BF<lUv'
+ENV WT_KH_WAVERLITE_ISVS_PRODUCT_KEY='^]l0+P;l]5}kgMi{3&p6uwAXo5J34y'
+ENV WT_KH_WAVERLITE_WEB_PRODUCT_KEY='SF3E9W_QUx~qQPz-h4pZ{C]{},1?N*'
+
+# Enable Apache modules and configure PHP
+RUN a2enmod rewrite && \
+    docker-php-ext-install mysqli && \
+    docker-php-ext-enable mysqli
+
+RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+
+# Expose port 80 for HTTP traffic
+EXPOSE 80
+
+# Start the Apache web server
+CMD ["apache2-foreground"]
