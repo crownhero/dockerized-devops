@@ -1,0 +1,42 @@
+# Stage 1: Build the application
+FROM node:20 AS builder
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    unzip nano git curl nodejs npm
+
+# Copy application to the container
+WORKDIR /tmp
+RUN rm -rf /tmp/*
+RUN git clone https://waverlite:github_token@github.com/waverlite/Website.git .
+RUN git checkout prebuilt
+RUN rm Dockerfile Jenkinsfile1
+RUN npm install
+RUN npm run build
+RUN npx next export
+
+# Stage 2: Finalize the image
+FROM php:7.4-apache
+
+# Copy the built application from the previous stage and give necessary permissions
+COPY --from=builder /tmp/out  /var/www/html/
+RUN chmod -R 755 /var/www/html
+
+# Set up environment variables
+ENV WT_KH_WAVERLITE_CORE_PRODUCT_KEY=')@y<=L|X9KdEi0MVlKU#59BF<lUv'
+ENV WT_KH_WAVERLITE_ISVS_PRODUCT_KEY='^]l0+P;l]5}kgMi{36uwAXo5J34y'
+ENV WT_KH_WAVERLITE_WEB_PRODUCT_KEY='SF3E9W_QUx~qQPz-hZ{C]{},1?N*'
+
+# Enable Apache modules and configure PHP
+RUN a2enmod rewrite && \
+    docker-php-ext-install mysqli && \
+    docker-php-ext-enable mysqli
+
+RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+
+# Expose port 80 for HTTP traffic
+EXPOSE 80
+
+# Start the Apache web server
+CMD ["apache2-foreground"]
