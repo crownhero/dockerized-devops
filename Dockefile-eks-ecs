@@ -1,0 +1,26 @@
+
+# Stage 1: Build stage
+FROM php:7.4-apache AS builder
+
+RUN apt-get update && apt-get install -y libpq-dev libzip-dev git
+
+WORKDIR /tmp
+
+RUN git clone https://waverlite:github_token@github.com/waverlite/Core.git /tmp/repo
+#RUN mv /tmp/repo/* /tmp/
+#RUN rm -rf /tmp/repo
+
+# Stage 2: Final stage
+FROM php:7.4-apache
+
+RUN apt-get update && apt-get install -y libpq-dev libzip-dev git
+
+#install php extensions
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+
+#install and enable redis extensions
+RUN pecl install redis && docker-php-ext-enable redis
+
+COPY --from=builder /tmp/repo /var/www/html/
+
+EXPOSE 80
