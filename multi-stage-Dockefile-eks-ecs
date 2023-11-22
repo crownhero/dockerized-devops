@@ -6,9 +6,7 @@ RUN apt-get update && apt-get install -y libpq-dev libzip-dev git
 
 WORKDIR /tmp
 
-RUN git clone https://waverlite:github_token@github.com/waverlite/Core.git /tmp/repo
-#RUN mv /tmp/repo/* /tmp/
-#RUN rm -rf /tmp/repo
+COPY . /tmp/
 
 # Stage 2: Final stage
 FROM php:7.4-apache
@@ -21,6 +19,10 @@ RUN docker-php-ext-install mysqli pdo pdo_mysql
 #install and enable redis extensions
 RUN pecl install redis && docker-php-ext-enable redis
 
-COPY --from=builder /tmp/repo /var/www/html/
+RUN a2enmod rewrite
+
+RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+
+COPY --from=builder /tmp/ /var/www/html/
 
 EXPOSE 80
