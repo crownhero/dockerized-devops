@@ -1,0 +1,33 @@
+# Stage 1: Build stage
+FROM python:3-alpine AS builder
+
+WORKDIR /tmp
+
+COPY . /tmp/
+
+RUN pip install boto3
+
+RUN chmod +x /tmp/fetch_data.py 
+
+RUN python3 fetch_data.py > /tmp/integration
+
+
+
+# Stage 2: Final stage
+FROM php:8.0-apache
+
+RUN apt-get update && apt-get install -y libpq-dev libzip-dev git && apt-get clean
+
+#install php extensions
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+
+#install and enable redis extensions
+RUN pecl install redis && docker-php-ext-enable redis
+
+RUN a2enmod rewrite
+
+RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+
+COPY --from=builder /tmp/ /var/www/html/
+
+EXPOSE 80
