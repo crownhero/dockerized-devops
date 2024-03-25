@@ -8,8 +8,7 @@ RUN apt-get update && \
 
 # Copy application to the container
 WORKDIR /tmp
-RUN rm -rf /tmp/*
-COPY . /tmp/
+COPY . /tmp
 RUN rm Dockerfile Jenkinsfile1
 RUN npm install
 RUN npm run build
@@ -18,14 +17,9 @@ RUN npx next export
 # Stage 2: Finalize the image
 FROM php:7.4-apache
 
-# Copy the built application from the previous stage and give necessary permissions
+# The built application from the previous stage is being copied and all necessary permissions are given
 COPY --from=builder /tmp/out  /var/www/html/
 RUN chmod -R 755 /var/www/html
-
-# Set up environment variables
-ENV STR_CORE_PRODUCT_KEY=<secrets>
-ENV STR_PRODUCT_KEY=<secrets>
-ENV STR_WEB_PRODUCT_KEY=<secrets>
 
 # Enable Apache modules and configure PHP
 RUN a2enmod rewrite && \
@@ -33,6 +27,14 @@ RUN a2enmod rewrite && \
     docker-php-ext-enable mysqli
 
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
+
+ARG WT_KH_WAVERLITE_CORE_PRODUCT_KEY
+ARG WT_KH_WAVERLITE_ISVS_PRODUCT_KEY
+ARG WT_KH_WAVERLITE_WEB_PRODUCT_KEY
+
+ENV WT_KH_WAVERLITE_CORE_PRODUCT_KEY=${WT_KH_WAVERLITE_CORE_PRODUCT_KEY}
+ENV WT_KH_WAVERLITE_ISVS_PRODUCT_KEY=${WT_KH_WAVERLITE_ISVS_PRODUCT_KEY}
+ENV WT_KH_WAVERLITE_WEB_PRODUCT_KEY=${WT_KH_WAVERLITE_WEB_PRODUCT_KEY}
 
 # Expose port 80 for HTTP traffic
 EXPOSE 80
