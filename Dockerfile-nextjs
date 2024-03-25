@@ -28,16 +28,16 @@ RUN a2enmod rewrite && \
 
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 
-ARG WT_KH_WAVERLITE_CORE_PRODUCT_KEY
-ARG WT_KH_WAVERLITE_ISVS_PRODUCT_KEY
-ARG WT_KH_WAVERLITE_WEB_PRODUCT_KEY
+ARG kdevops_internal1_DEV_KEY
+ARG kdevops_internal2_DEV_KEY
+ARG kdevops_internal3_DEV_KEY
 
-ENV WT_KH_WAVERLITE_CORE_PRODUCT_KEY=${WT_KH_WAVERLITE_CORE_PRODUCT_KEY}
-ENV WT_KH_WAVERLITE_ISVS_PRODUCT_KEY=${WT_KH_WAVERLITE_ISVS_PRODUCT_KEY}
-ENV WT_KH_WAVERLITE_WEB_PRODUCT_KEY=${WT_KH_WAVERLITE_WEB_PRODUCT_KEY}
+ENV kdevops_internal1_DEV_KEY=${kdevops_internal1_DEV_KEY}
+ENV kdevops_internal2_DEV_KEY=${kdevops_internal2_DEV_KEY}
+ENV kdevops_internal3_DEV_KEY=${kdevops_internal3_DEV_KEY}
 
 # Expose port 80 for HTTP traffic
-EXPOSE 80
+EXPOSE 80 
 
 # Start the Apache web server
 CMD ["apache2-foreground"]
